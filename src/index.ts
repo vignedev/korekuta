@@ -86,8 +86,8 @@ server
 
     await database.setEntryRange(
       name,
-      min || null,
-      max || null
+      (min == 0) ? 0 : (min || null),
+      (max == 0) ? 0 : (max || null)
     )
 
     res.setHeader('Content-Type', 'application/json')
