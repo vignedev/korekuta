@@ -57,8 +57,8 @@ server
   if(isNaN(+value))
     throw new Error('Value is parsed as NaN')
 
-  const timestamp = new Date()
-  await database.pushEntry(name, +value)
+  const timestamp = Date.now()
+  await database.pushEntry(name, timestamp, +value)
 
   res.setHeader('Content-Type', 'application/json')
   res.send({ timestamp, value: +value }, 200)

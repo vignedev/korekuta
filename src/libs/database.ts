@@ -10,7 +10,7 @@ export abstract class Database {
   /** Retrieves all entries of `name` from where `fromTimestamp <= timestamp <= toTimestamp` */
   abstract getEntries(name: string, fromTimestamp: number, toTimestamp: number): Promise<DataEntry[]>
   /** Pushes `value` into (or creates) a list called `name` at that particular time. */
-  abstract pushEntry(name: string, value: number): Promise<void>
+  abstract pushEntry(name: string, timestamp: number, value: number): Promise<void>
 
   /** All entries of `name` that have `timestamp < timestampThreshold` will be removed. */
   abstract trimEntries(name: string, timestampThreshold: number): Promise<void>

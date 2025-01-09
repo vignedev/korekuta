@@ -60,8 +60,8 @@ export class SQLiteDatabase extends Database {
   async getEntries(name: string, fromTimestamp: number, toTimestamp: number): Promise<DataEntry[]> {
     return this.getEntriesStatement.all(name, fromTimestamp, toTimestamp)
   }
-  async pushEntry(name: string, value: number): Promise<void> {
-    this.pushEntryStatement.run(name, Date.now(), value)
+  async pushEntry(name: string, timestamp: number, value: number): Promise<void> {
+    this.pushEntryStatement.run(name, timestamp, value)
   }
   async trimEntries(name: string, timestampThreshold: number): Promise<void> {
     this.trimEntriesStatement.run(name, timestampThreshold)
