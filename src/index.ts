@@ -17,6 +17,7 @@ server.use((req, res, next) => {
 
 server
 .get('/api/entries', async (req, res) => {
+  res.setHeader('Content-Type', 'application/json')
   res.send(await database.getAllEntries(), 200)
 })
 .get('/api/entries/:name', async (req, res) => {
@@ -29,6 +30,7 @@ server
   if(isNaN(+from) || (to && isNaN(+to)))
     throw new Error('Invalid ?from or ?to -- isNaN?')
 
+  res.setHeader('Content-Type', 'application/json')
   res.send(await database.getEntries(name, +from, +to || (Date.now() + 10)))
 })
 .post('/api/entries/:name', async (req, res) => {
@@ -43,13 +45,14 @@ server
   const timestamp = new Date()
   await database.pushEntry(name, +value)
 
+  res.setHeader('Content-Type', 'application/json')
   res.send({ timestamp, value: +value }, 200)
 })
 .delete('/api/entries/:name', async (req, res) => {
   const { name } = req.params
   await database.deleteEntries(name)
   
-  res.send({}, 200)
+  res.send(null, 200)
 })
 
 server.start(8888)
