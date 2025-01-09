@@ -8,7 +8,8 @@ const config = {
   host: envString('KOREKUTA_HOST', '0.0.0.0'),
   port: envInt('KOREKUTA_PORT', 65001),
   trimRetention: envInt('KOREKUTA_TRIM_RETENTION', 604_800_000),
-  trimInterval: envInt('KOREKUTA_TRIM_INTERVAL', 3_600_000)
+  trimInterval: envInt('KOREKUTA_TRIM_INTERVAL', 3_600_000),
+  database: envString('KOREKUTA_DATABASE_PATH', ':memory:')
 } as const
 
 const server = restana({
@@ -18,7 +19,7 @@ const server = restana({
     res.send(err, 500)
   }
 })
-const database = new SQLiteDatabase('./database.db')
+const database = new SQLiteDatabase(config.database)
 
 setInterval(async () => {
   info(`${new Date().toISOString()} | trimming old stuff`)
