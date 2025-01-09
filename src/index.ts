@@ -1,17 +1,32 @@
+import { error, info } from 'libs/log'
 import { SQLiteDatabase } from './libs/SQLiteDatabase'
 import { buffer } from 'node:stream/consumers'
 import restana from 'restana'
+import { envInt, envString } from 'libs/env'
 
-const server = restana()
+const config = {
+  host: envString('KOREKUTA_HOST', '0.0.0.0'),
+  port: envInt('KOREKUTA_PORT', 65001),
+  trimRetention: envInt('KOREKUTA_TRIM_RETENTION', 604_800_000),
+  trimInterval: envInt('KOREKUTA_TRIM_INTERVAL', 3_600_000)
+} as const
+
+const server = restana({
+  errorHandler: (err, req, res) => {
+    error(err)
+    res.setHeader('Content-Type', 'application/json')
+    res.send(err, 500)
+  }
+})
 const database = new SQLiteDatabase('./database.db')
 
 setInterval(async () => {
-  console.log(`${new Date().toISOString()} | trimming old stuff`)
-  await database.trimAllEntries(Date.now() - 604_800_000)
-}, 3_600_000)
+  info(`${new Date().toISOString()} | trimming old stuff`)
+  await database.trimAllEntries(Date.now() - config.trimRetention)
+}, config.trimInterval)
 
-server.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} | ${req.method} ${req.url}`)
+server.use((req, _res, next) => {
+  info(`${new Date().toISOString()} | ${req.method} ${req.url}`)
   return next()
 })
 
@@ -55,4 +70,6 @@ server
   res.send(null, 200)
 })
 
-server.start(8888)
+server.start(config.port, config.host)
+.then(() => info(`Listening on http://${config.host}:${config.port}`))
+.catch(error)
