@@ -1,5 +1,5 @@
 import SQLite from 'better-sqlite3'
-import { Database, DataEntry } from './database';
+import { Database, DataEntry } from './database.js';
 
 export class SQLiteDatabase extends Database {
   private sqlite: SQLite.Database

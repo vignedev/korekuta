@@ -1,6 +1,5 @@
-import { SQLiteDatabase } from 'libs/SQLiteDatabase'
+import { SQLiteDatabase } from './libs/SQLiteDatabase'
 import { buffer } from 'node:stream/consumers'
-import { pipeline } from 'node:stream/promises'
 import restana from 'restana'
 
 const server = restana()
@@ -44,7 +43,7 @@ server
   const timestamp = new Date()
   await database.pushEntry(name, +value)
 
-  res.send({ timestamp, value }, 200)
+  res.send({ timestamp, value: +value }, 200)
 })
 .delete('/api/entries/:name', async (req, res) => {
   const { name } = req.params
