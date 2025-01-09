@@ -78,7 +78,7 @@ server
     const { name } = req.params
 
     res.setHeader('Content-Type', 'application/json')
-    res.send(await database.getEntryRange(name), 200)
+    res.send(await database.getEntryRange(name) || {}, 200)
   })
   .put('/api/ranges/:name', async (req, res) => {
     const { name } = req.params
