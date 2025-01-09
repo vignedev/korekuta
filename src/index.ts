@@ -42,11 +42,15 @@ server
   if(Array.isArray(from) || Array.isArray(to))
     throw new Error('Multiple ?from or ?to specified.')
 
-  if(isNaN(+from) || (to && isNaN(+to)))
+  if((from && isNaN(+from)) || (to && isNaN(+to)))
     throw new Error('Invalid ?from or ?to -- isNaN?')
 
   res.setHeader('Content-Type', 'application/json')
-  res.send(await database.getEntries(name, +from, +to || (Date.now() + 10)))
+  res.send(await database.getEntries(
+    name,
+    +from || (0),
+    +to || (Date.now() + 10)
+  ))
 })
 .post('/api/entries/:name', async (req, res) => {
   const { name } = req.params
