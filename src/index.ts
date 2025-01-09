@@ -46,5 +46,11 @@ server
 
   res.send({ timestamp, value }, 200)
 })
+.delete('/api/entries/:name', async (req, res) => {
+  const { name } = req.params
+  await database.deleteEntries(name)
+  
+  res.send({}, 200)
+})
 
 server.start(8888)
