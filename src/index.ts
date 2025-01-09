@@ -22,12 +22,12 @@ const server = restana({
 const database = new SQLiteDatabase(config.database)
 
 setInterval(async () => {
-  info(`${new Date().toISOString()} | trimming old stuff`)
+  info('trimming old stuff')
   await database.trimAllEntries(Date.now() - config.trimRetention)
 }, config.trimInterval)
 
 server.use((req, _res, next) => {
-  info(`${new Date().toISOString()} | ${req.method} ${req.url}`)
+  info(`${req.method} ${req.url}`)
   return next()
 })
 
