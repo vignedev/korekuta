@@ -1,5 +1,5 @@
 import SQLite from 'better-sqlite3'
-import { Database, DataEntry } from './database.js';
+import { Database, DataEntry, DataRange } from './database.js';
 
 export class SQLiteDatabase extends Database {
   private sqlite: SQLite.Database
@@ -10,6 +10,9 @@ export class SQLiteDatabase extends Database {
   private trimEntriesStatement: SQLite.Statement<[name: string, threshold: number], void>
   private trimAllEntriesStatement: SQLite.Statement<[threshold: number], void>
   private deleteEntriesStatement: SQLite.Statement<[name: string], void>
+  private setEntryRangeStatement: SQLite.Statement<[name: string, min: number | null, max: number | null], DataRange>
+  private getEntryRangeStatement: SQLite.Statement<[name: string], DataRange>
+  private deleteEntryRangeStatement: SQLite.Statement<[name: string], void>
 
   constructor(path: string) {
     super()
@@ -22,6 +25,12 @@ export class SQLiteDatabase extends Database {
         entry_name TEXT NOT NULL,
         entry_timestamp INTEGER NOT NULL,
         entry_value REAL NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS ranges (
+        entry_name TEXT PRIMARY KEY,
+        entry_min REAL,
+        entry_max REAL
       );
 
       CREATE INDEX IF NOT EXISTS entries_by_name
@@ -51,12 +60,20 @@ export class SQLiteDatabase extends Database {
     this.deleteEntriesStatement = this.sqlite.prepare(`
       DELETE FROM entries WHERE entry_name = ?
     `)
+    this.setEntryRangeStatement = this.sqlite.prepare(`
+      INSERT OR REPLACE INTO ranges (entry_name, entry_min, entry_max) VALUES (?, ?, ?)
+    `)
+    this.getEntryRangeStatement = this.sqlite.prepare(`
+      SELECT entry_min AS min, entry_max AS max FROM ranges WHERE entry_name = ?
+    `)
+    this.deleteEntryRangeStatement = this.sqlite.prepare(`
+      DELETE FROM ranges WHERE entry_name = ?  
+    `)
   }
 
   async getAllEntries(): Promise<string[]> {
     return this.getAllEntriesStatement.all().map(x => x.name)
   }
-
   async getEntries(name: string, fromTimestamp: number, toTimestamp: number): Promise<DataEntry[]> {
     return this.getEntriesStatement.all(name, fromTimestamp, toTimestamp)
   }
@@ -71,5 +88,14 @@ export class SQLiteDatabase extends Database {
   }
   async deleteEntries(name: string): Promise<void> {
     this.deleteEntriesStatement.run(name)
+  }
+  async setEntryRange(name: string, min: number | null, max: number | null) {
+    this.setEntryRangeStatement.run(name, min, max)
+  }
+  async getEntryRange(name: string) {
+    return this.getEntryRangeStatement.get(name) || null
+  }
+  async deleteEntryRange(name: string) {
+    this.deleteEntryRangeStatement.run(name)
   }
 }

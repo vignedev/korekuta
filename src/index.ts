@@ -32,49 +32,74 @@ server.use((req, _res, next) => {
 })
 
 server
-.get('/api/entries', async (req, res) => {
-  res.setHeader('Content-Type', 'application/json')
-  res.send(await database.getAllEntries(), 200)
-})
-.get('/api/entries/:name', async (req, res) => {
-  const { name } = req.params
-  const { from, to } = req.query
+  .get('/api/entries', async (req, res) => {
+    res.setHeader('Content-Type', 'application/json')
+    res.send(await database.getAllEntries(), 200)
+  })
+  .get('/api/entries/:name', async (req, res) => {
+    const { name } = req.params
+    const { from, to } = req.query
 
-  if(Array.isArray(from) || Array.isArray(to))
-    throw new Error('Multiple ?from or ?to specified.')
+    if (Array.isArray(from) || Array.isArray(to))
+      throw new Error('Multiple ?from or ?to specified.')
 
-  if((from && isNaN(+from)) || (to && isNaN(+to)))
-    throw new Error('Invalid ?from or ?to -- isNaN?')
+    if ((from && isNaN(+from)) || (to && isNaN(+to)))
+      throw new Error('Invalid ?from or ?to -- isNaN?')
 
-  res.setHeader('Content-Type', 'application/json')
-  res.send(await database.getEntries(
-    name,
-    +from || (0),
-    +to || (Date.now() + 10)
-  ))
-})
-.post('/api/entries/:name', async (req, res) => {
-  const { name } = req.params
-  const value = (await buffer(req)).toString()
-  if(!value)
-    throw new Error('Empty value')
+    res.setHeader('Content-Type', 'application/json')
+    res.send(await database.getEntries(
+      name,
+      +from || (0),
+      +to || (Date.now() + 10)
+    ))
+  })
+  .post('/api/entries/:name', async (req, res) => {
+    const { name } = req.params
+    const value = (await buffer(req)).toString()
+    if (!value)
+      throw new Error('Empty value')
 
-  if(isNaN(+value))
-    throw new Error('Value is parsed as NaN')
+    if (isNaN(+value))
+      throw new Error('Value is parsed as NaN')
 
-  const timestamp = Date.now()
-  await database.pushEntry(name, timestamp, +value)
+    const timestamp = Date.now()
+    await database.pushEntry(name, timestamp, +value)
 
-  res.setHeader('Content-Type', 'application/json')
-  res.send({ timestamp, value: +value }, 200)
-})
-.delete('/api/entries/:name', async (req, res) => {
-  const { name } = req.params
-  await database.deleteEntries(name)
-  
-  res.send(null, 200)
-})
+    res.setHeader('Content-Type', 'application/json')
+    res.send({ timestamp, value: +value }, 200)
+  })
+  .delete('/api/entries/:name', async (req, res) => {
+    const { name } = req.params
+    await database.deleteEntries(name)
+
+    res.send(null, 200)
+  })
+  .get('/api/ranges/:name', async (req, res) => {
+    const { name } = req.params
+
+    res.setHeader('Content-Type', 'application/json')
+    res.send(await database.getEntryRange(name), 200)
+  })
+  .put('/api/ranges/:name', async (req, res) => {
+    const { name } = req.params
+    const { min, max } = JSON.parse((await buffer(req)).toString()) as { min?: number | null, max?: number | null }
+
+    await database.setEntryRange(
+      name,
+      min || null,
+      max || null
+    )
+
+    res.setHeader('Content-Type', 'application/json')
+    res.send({ min, max }, 200)
+  })
+  .delete('/api/ranges/:name', async (req, res) => {
+    const { name } = req.params
+
+    res.setHeader('Content-Type', 'application/json')
+    res.send(null, 200)
+  })
 
 server.start(config.port, config.host)
-.then(() => info(`Listening on http://${config.host}:${config.port}`))
-.catch(error)
+  .then(() => info(`Listening on http://${config.host}:${config.port}`))
+  .catch(error)

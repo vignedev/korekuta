@@ -3,6 +3,11 @@ export type DataEntry = {
   value: number
 }
 
+export type DataRange = {
+  min: number | null,
+  max: number | null
+}
+
 export abstract class Database {
   /** Retrieves all entries present within the database. */
   abstract getAllEntries(): Promise<string[]>
@@ -19,4 +24,8 @@ export abstract class Database {
 
   /** Remove all entries of a particular `name`. */
   abstract deleteEntries(name: string): Promise<void>
+
+  abstract setEntryRange(name: string, min: number | null, max: number | null): Promise<void>;
+  abstract getEntryRange(name: string): Promise<DataRange | null>;
+  abstract deleteEntryRange(name: string): Promise<void>
 }
