@@ -16,9 +16,10 @@ export const useEntries = () => useQuery({
   queryFn: () => fetcher<string[]>(`/api/entries`)
 })
 
-export const useEntryData = (name: string) => useQuery({
+export const useEntryData = (name: string, from: number | null = null, rate: number = 1000) => useQuery({
   queryKey: [ 'data', name ],
-  queryFn: () => fetcher<DataEntry[]>(`/api/entries/${name}`)
+  queryFn: () => fetcher<DataEntry[]>(`/api/entries/${name}?from=${from || 0}`),
+  refetchInterval: rate <= 0 ? false : rate
 })
 
 export const useEntryRange = (name: string) => {

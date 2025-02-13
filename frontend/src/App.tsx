@@ -8,10 +8,10 @@ function App() {
   const queryClient = new QueryClient()
 
   return (
-    <Theme>
+    <Theme appearance='dark'>
       <QueryClientProvider client={queryClient}>
         <Flex direction='column' gap='2' p='4'>
-          <Heading>peni</Heading>
+          <Heading>korekuta</Heading>
 
           <Suspense fallback={<Spinner/>}>
             <ChartListing/>
