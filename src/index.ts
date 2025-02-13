@@ -3,6 +3,8 @@ import restana from 'restana'
 import { error, info } from './libs/log'
 import { SQLiteDatabase } from './libs/SQLiteDatabase'
 import { envInt, envString } from './libs/env'
+import serveStatic from 'serve-static'
+import { join } from 'node:path'
 
 const config = {
   host: envString('KOREKUTA_HOST', '0.0.0.0'),
@@ -30,6 +32,8 @@ server.use((req, _res, next) => {
   info(`${req.method} ${req.url}`)
   return next()
 })
+
+server.use(serveStatic(join(__dirname, '..', 'frontend', 'dist')))
 
 server
   .get('/api/entries', async (req, res) => {
