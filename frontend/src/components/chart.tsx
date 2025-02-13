@@ -1,4 +1,4 @@
-import { Box, Callout, DataList, Flex, Select, Spinner, IconButton, AlertDialog, Code, Button } from '@radix-ui/themes'
+import { Box, Callout, DataList, Flex, Select, Spinner, IconButton, AlertDialog, Code, Button, Checkbox, Text, Separator } from '@radix-ui/themes'
 import {
   Chart as ChartJS,
   PointElement,
@@ -55,6 +55,8 @@ const ChartDataView = memo(({ data }: { data: DataEntry[] }) => {
 })
 
 const Chart = memo(({ name, last_ms, updateRate }: { name: string, last_ms?: number, updateRate?: number }) => {
+  const [ stepped, setStepped ] = useState(true)
+
   const range = useEntryRange(name)
   const data = useEntryData(name, null, updateRate)
 
@@ -67,18 +69,35 @@ const Chart = memo(({ name, last_ms, updateRate }: { name: string, last_ms?: num
   )
 
   return <Flex gap='1'>
-    <ChartDataView data={data.data} />
+    <Flex gap='2' direction='column'>
+      <ChartDataView data={data.data} />
+
+      <Box asChild width='100%'><Separator/></Box>
+
+      <Flex gap='2' direction='row' align='center' asChild>
+        <Text as='label'>
+          <Checkbox checked={stepped} onCheckedChange={checked => setStepped(!!checked)} />
+          Stepped chart
+        </Text>
+      </Flex>
+    </Flex>
 
     <Box width='100%'>
       <Line options={{
         scales: {
           x: {
             type: 'time',
-            min: last_ms ? (Date.now() - last_ms) : undefined
+            min: last_ms ? (Date.now() - last_ms) : undefined,
+            grid: { 
+              color: '#8882'
+            }
           },
           y: {
             min: range.data.min!,
             max: range.data.max!,
+            grid: { 
+              color: '#8882'
+            }
           }
         },
         animation: false
@@ -88,10 +107,10 @@ const Chart = memo(({ name, last_ms, updateRate }: { name: string, last_ms?: num
             label: name,
             data: data.data.map(({ timestamp, value }) => ({ x: timestamp, y: value })),
             pointStyle: 'circle',
-            borderColor: '#af2',
-            backgroundColor: '#af25',
+            borderColor: '#fa2',
+            backgroundColor: '#fa28',
             fill: true,
-            stepped: true
+            stepped: stepped
           }
         ]
       }} />
@@ -137,7 +156,7 @@ export const ChartListing = () => {
               <Select.Item value='600000'>Last 10 minute</Select.Item>
               <Select.Item value='900000'>Last 15 minute</Select.Item>
               <Select.Item value='1800000'>Last 30 minute</Select.Item>
-              <Select.Item value='3600000'>Last hour minute</Select.Item>
+              <Select.Item value='3600000'>Last hour</Select.Item>
             </Select.Content>
           </Select.Root>
         </Box>

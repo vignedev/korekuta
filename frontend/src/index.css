@@ -5,3 +5,7 @@ body {
 .rt-BaseButton {
   cursor: pointer !important;
 }
+
+label {
+  user-select: none;
+}
