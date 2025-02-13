@@ -15,6 +15,7 @@ import 'chartjs-adapter-date-fns'
 import { ReloadIcon, TrashIcon } from '@radix-ui/react-icons'
 import { fetcher } from '../libs/utils'
 import { useQueryClient } from '@tanstack/react-query'
+import { CheckboxCombined } from './shortcuts'
 
 ChartJS.register(
   PointElement,
@@ -25,11 +26,37 @@ ChartJS.register(
   Filler
 )
 
-const ChartDataView = memo(({ data }: { data: DataEntry[] }) => {
+const ChartDataView = memo(({ data, last_ms }: { data: DataEntry[], last_ms?: number }) => {
   const last = data.at(-1)
+  let
+    min = null,
+    max = null,
+    sum = 0,
+    count = 0
+
+  for(const item of data) {
+    if(item.timestamp <= (last_ms ? Date.now() - last_ms :  0)) continue
+
+    min = (min == null) ? item.value : Math.min(item.value, min)
+    max = (max == null) ? item.value : Math.max(item.value, max)
+    sum += item.value
+    ++count
+  }
 
   return (
     <DataList.Root orientation='vertical'>
+      <DataList.Item>
+        <DataList.Label>Minimum</DataList.Label>
+        <DataList.Value>{min}</DataList.Value>
+      </DataList.Item>
+      <DataList.Item>
+        <DataList.Label>Maximum</DataList.Label>
+        <DataList.Value>{max}</DataList.Value>
+      </DataList.Item>
+      <DataList.Item>
+        <DataList.Label>Average</DataList.Label>
+        <DataList.Value>{count && (sum / count).toFixed(4)}</DataList.Value>
+      </DataList.Item>
       <DataList.Item>
         <DataList.Label>Last Value</DataList.Label>
         <DataList.Value>{last?.value}</DataList.Value>
@@ -38,24 +65,13 @@ const ChartDataView = memo(({ data }: { data: DataEntry[] }) => {
         <DataList.Label>Last Update</DataList.Label>
         <DataList.Value>{last && new Date(last.timestamp).toLocaleString()}</DataList.Value>
       </DataList.Item>
-      <DataList.Item>
-        <DataList.Label>Minimum</DataList.Label>
-        <DataList.Value>{data && data.reduce((acc, val) => Math.min(acc, val.value), data[0].value)}</DataList.Value>
-      </DataList.Item>
-      <DataList.Item>
-        <DataList.Label>Maximum</DataList.Label>
-        <DataList.Value>{data && data.reduce((acc, val) => Math.max(acc, val.value), 0)}</DataList.Value>
-      </DataList.Item>
-      <DataList.Item>
-        <DataList.Label>Average</DataList.Label>
-        <DataList.Value>{data && (data.reduce((acc, val) => acc += val.value, 0) / data.length).toFixed(4)}</DataList.Value>
-      </DataList.Item>
     </DataList.Root>
   )
 })
 
 const Chart = memo(({ name, last_ms, updateRate }: { name: string, last_ms?: number, updateRate?: number }) => {
   const [ stepped, setStepped ] = useState(true)
+  const [ pointRadius, setPointRadius ] = useState(0)
 
   const range = useEntryRange(name)
   const data = useEntryData(name, null, updateRate)
@@ -70,16 +86,11 @@ const Chart = memo(({ name, last_ms, updateRate }: { name: string, last_ms?: num
 
   return <Flex gap='1'>
     <Flex gap='2' direction='column'>
-      <ChartDataView data={data.data} />
+      <ChartDataView data={data.data} last_ms={last_ms}/>
 
       <Box asChild width='100%'><Separator/></Box>
-
-      <Flex gap='2' direction='row' align='center' asChild>
-        <Text as='label'>
-          <Checkbox checked={stepped} onCheckedChange={checked => setStepped(!!checked)} />
-          Stepped chart
-        </Text>
-      </Flex>
+      <CheckboxCombined checked={stepped} label='Stepped chart' setChecked={setStepped}/>
+      <CheckboxCombined checked={pointRadius == 4} label='Points' setChecked={checked => setPointRadius(checked ? 4 : 0)}/>
     </Flex>
 
     <Box width='100%'>
@@ -107,6 +118,7 @@ const Chart = memo(({ name, last_ms, updateRate }: { name: string, last_ms?: num
             label: name,
             data: data.data.map(({ timestamp, value }) => ({ x: timestamp, y: value })),
             pointStyle: 'circle',
+            pointRadius: pointRadius,
             borderColor: '#fa2',
             backgroundColor: '#fa28',
             fill: true,
