@@ -185,6 +185,12 @@ export const ChartListing = () => {
               <Select.Item value='900000'>Last 15 minute</Select.Item>
               <Select.Item value='1800000'>Last 30 minute</Select.Item>
               <Select.Item value='3600000'>Last hour</Select.Item>
+              <Select.Item value='7200000'>Last 2 hours</Select.Item>
+              <Select.Item value='10800000'>Last 3 hours</Select.Item>
+              <Select.Item value='14400000'>Last 4 hours</Select.Item>
+              <Select.Item value='21600000'>Last 6 hours</Select.Item>
+              <Select.Item value='32400000'>Last 9 hours</Select.Item>
+              <Select.Item value='43200000'>Last 12 hours</Select.Item>
             </Select.Content>
           </Select.Root>
         </Box>
