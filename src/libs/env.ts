@@ -10,10 +10,10 @@
  */
 export const envEnabled = (key: string, defaultValue?: boolean): boolean => {
   const value = process.env[key]
-  if(typeof value == 'undefined') return defaultValue ?? false
-  
+  if (typeof value == 'undefined') return defaultValue ?? false
+
   const str = value.toString().toLowerCase()
-  if(str === '' || str === '0' || str == 'false' || str == 'no') return false
+  if (str === '' || str === '0' || str == 'false' || str == 'no') return false
 
   return true
 }
@@ -28,20 +28,20 @@ export const envEnabled = (key: string, defaultValue?: boolean): boolean => {
  */
 export const envInt = (key: string, defaultValue?: number): number => {
   const value = process.env[key]
-  if(typeof value == 'undefined')
-    if(typeof defaultValue != 'undefined') return defaultValue
+  if (typeof value == 'undefined')
+    if (typeof defaultValue != 'undefined') return defaultValue
     else throw Error(`Environment variable ${key} is unset`)
 
   const int = parseInt(value, 10)
-  if(isNaN(int)) throw Error(`Environment variable ${key} cannot be parsed as an integer`)
+  if (isNaN(int)) throw Error(`Environment variable ${key} cannot be parsed as an integer`)
 
   return int
 }
 
 export const envString = (key: string, defaultValue?: string): string => {
   const value = process.env[key]
-  if(typeof value == 'undefined')
-    if(typeof defaultValue != 'undefined') return defaultValue
+  if (typeof value == 'undefined')
+    if (typeof defaultValue != 'undefined') return defaultValue
     else throw Error(`Environment variable ${key} is unset`)
 
   return value

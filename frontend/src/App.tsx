@@ -13,8 +13,8 @@ function App() {
         <Flex direction='column' gap='2' p='4'>
           <Heading>korekuta</Heading>
 
-          <Suspense fallback={<Spinner/>}>
-            <ChartListing/>
+          <Suspense fallback={<Spinner />}>
+            <ChartListing />
           </Suspense>
         </Flex>
       </QueryClientProvider>

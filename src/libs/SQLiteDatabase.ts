@@ -16,7 +16,7 @@ export class SQLiteDatabase extends Database {
 
   constructor(path: string) {
     super()
-    
+
     this.sqlite = new SQLite(path)
     this.sqlite.exec(`
       CREATE TABLE IF NOT EXISTS entries (
