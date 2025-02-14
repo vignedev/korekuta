@@ -92,9 +92,9 @@ const Chart = memo(({ relative, name, last_ms, updateRate }: TChartProps) => {
     <Flex gap='2' direction='column'>
       <ChartDataView relative={relative} data={data.data} last_ms={last_ms} />
 
-      <Box asChild width='100%'><Separator/></Box>
-      <CheckboxCombined checked={stepped} label='Stepped chart' setChecked={setStepped}/>
-      <CheckboxCombined checked={pointRadius == 4} label='Points' setChecked={checked => setPointRadius(checked ? 4 : 0)}/>
+      <Box asChild width='100%'><Separator /></Box>
+      <CheckboxCombined checked={stepped} label='Stepped chart' setChecked={setStepped} />
+      <CheckboxCombined checked={pointRadius == 4} label='Points' setChecked={checked => setPointRadius(checked ? 4 : 0)} />
     </Flex>
 
     <Box width='100%'>
@@ -103,14 +103,14 @@ const Chart = memo(({ relative, name, last_ms, updateRate }: TChartProps) => {
           x: {
             type: 'time',
             min: last_ms ? ((relative ? Date.now() : data.data.at(-1)?.timestamp || 0) - last_ms) : undefined,
-            grid: { 
+            grid: {
               color: '#8882'
             }
           },
           y: {
             min: range.data.min!,
             max: range.data.max!,
-            grid: { 
+            grid: {
               color: '#8882'
             }
           }
@@ -147,8 +147,8 @@ export const ChartListing = () => {
   return (
     <Flex direction='column' gap='2'>
       <Flex direction='row' gap='2'>
-        <IconButton variant='outline' onClick={() => queryClient.invalidateQueries({ queryKey: [ 'entries' ]})}>
-          <ReloadIcon/>
+        <IconButton variant='outline' onClick={() => queryClient.invalidateQueries({ queryKey: ['entries'] })}>
+          <ReloadIcon />
         </IconButton>
 
         <Select.Root value={entryName} onValueChange={setEntry}>
