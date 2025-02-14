@@ -26,7 +26,8 @@ ChartJS.register(
   Filler
 )
 
-const ChartDataView = memo(({ data, last_ms }: { data: DataEntry[], last_ms?: number }) => {
+type TChartDataViewProps = { relative: boolean, data: DataEntry[], last_ms?: number }
+const ChartDataView = memo(({ data, last_ms, relative }: TChartDataViewProps) => {
   const last = data.at(-1)
   let
     min = null,
@@ -34,8 +35,10 @@ const ChartDataView = memo(({ data, last_ms }: { data: DataEntry[], last_ms?: nu
     sum = 0,
     count = 0
 
-  for(const item of data) {
-    if(item.timestamp <= (last_ms ? Date.now() - last_ms :  0)) continue
+  const reference_time = relative ? Date.now() : last?.timestamp || 0
+
+  for (const item of data) {
+    if (item.timestamp <= (last_ms ? reference_time - last_ms : 0)) continue
 
     min = (min == null) ? item.value : Math.min(item.value, min)
     max = (max == null) ? item.value : Math.max(item.value, max)
@@ -69,9 +72,10 @@ const ChartDataView = memo(({ data, last_ms }: { data: DataEntry[], last_ms?: nu
   )
 })
 
-const Chart = memo(({ name, last_ms, updateRate }: { name: string, last_ms?: number, updateRate?: number }) => {
-  const [ stepped, setStepped ] = useState(true)
-  const [ pointRadius, setPointRadius ] = useState(0)
+type TChartProps = { relative: boolean, name: string, last_ms?: number, updateRate?: number }
+const Chart = memo(({ relative, name, last_ms, updateRate }: TChartProps) => {
+  const [stepped, setStepped] = useState(true)
+  const [pointRadius, setPointRadius] = useState(0)
 
   const range = useEntryRange(name)
   const data = useEntryData(name, null, updateRate)
@@ -86,7 +90,7 @@ const Chart = memo(({ name, last_ms, updateRate }: { name: string, last_ms?: num
 
   return <Flex gap='1'>
     <Flex gap='2' direction='column'>
-      <ChartDataView data={data.data} last_ms={last_ms}/>
+      <ChartDataView relative={relative} data={data.data} last_ms={last_ms} />
 
       <Box asChild width='100%'><Separator/></Box>
       <CheckboxCombined checked={stepped} label='Stepped chart' setChecked={setStepped}/>
@@ -98,7 +102,7 @@ const Chart = memo(({ name, last_ms, updateRate }: { name: string, last_ms?: num
         scales: {
           x: {
             type: 'time',
-            min: last_ms ? (Date.now() - last_ms) : undefined,
+            min: last_ms ? ((relative ? Date.now() : data.data.at(-1)?.timestamp || 0) - last_ms) : undefined,
             grid: { 
               color: '#8882'
             }
@@ -134,6 +138,8 @@ export const ChartListing = () => {
   const queryClient = useQueryClient()
   const entries = useEntries()
   const [entryName, setEntry] = useState<string>()
+
+  const [relative, setRelative] = useState(false)
   const [lastMs, setLastMs] = useState<number>(60_000 * 15)
   const [updateRate, setUpdateRate] = useState<number>(1000)
 
@@ -156,6 +162,16 @@ export const ChartListing = () => {
             }
           </Select.Content>
         </Select.Root>
+
+        <Box asChild minWidth='13rem'>
+          <Select.Root value={relative ? '1' : '0'} onValueChange={checked => setRelative(checked == '1')}>
+            <Select.Trigger />
+            <Select.Content>
+              <Select.Item value={'0'}>Relative to dataset</Select.Item>
+              <Select.Item value={'1'}>Relative to realtime</Select.Item>
+            </Select.Content>
+          </Select.Root>
+        </Box>
 
         <Box asChild minWidth='13rem'>
           <Select.Root value={lastMs.toString()} onValueChange={value => setLastMs(+value)}>
@@ -211,7 +227,7 @@ export const ChartListing = () => {
         </AlertDialog.Root>
       </Flex>
 
-      {entryName && <Chart name={entryName} last_ms={lastMs} updateRate={updateRate}/>}
+      {entryName && <Chart relative={relative} name={entryName} last_ms={lastMs} updateRate={updateRate} />}
     </Flex>
   )
 }
