@@ -122,6 +122,7 @@ const Chart = memo(({ relative, name, last_ms, updateRate }: TChartProps) => {
             label: name,
             data: data.data.map(({ timestamp, value }) => ({ x: timestamp, y: value })),
             pointStyle: 'circle',
+            pointHitRadius: 4,
             pointRadius: pointRadius,
             borderColor: '#fa2',
             backgroundColor: '#fa28',
