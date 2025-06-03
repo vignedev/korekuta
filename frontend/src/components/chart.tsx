@@ -1,4 +1,4 @@
-import { Box, Callout, DataList, Flex, Select, Spinner, IconButton, AlertDialog, Code, Button, Separator } from '@radix-ui/themes'
+import { Box, Callout, DataList, Flex, Select, Spinner, IconButton, AlertDialog, Code, Button, Separator, Dialog, Grid, Text, TextField } from '@radix-ui/themes'
 import {
   Chart as ChartJS,
   PointElement,
@@ -10,9 +10,9 @@ import {
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
 import { DataEntry, useEntries, useEntryData, useEntryRange } from '../libs/api'
-import { memo, useState } from 'react'
+import { memo, ReactNode, useEffect, useState } from 'react'
 import 'chartjs-adapter-date-fns'
-import { ReloadIcon, TrashIcon } from '@radix-ui/react-icons'
+import { ReloadIcon, RowSpacingIcon, TrashIcon } from '@radix-ui/react-icons'
 import { fetcher } from '../libs/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { CheckboxCombined } from './shortcuts'
@@ -146,93 +146,76 @@ export const ChartListing = () => {
 
   return (
     <Flex direction='column' gap='2'>
-      <Flex direction='row' gap='2'>
-        <IconButton variant='outline' onClick={() => queryClient.invalidateQueries({ queryKey: ['entries'] })}>
-          <ReloadIcon />
-        </IconButton>
+      <Flex direction='column' gap='2'>
+        <Flex direction='row' gap='2'>
+          <IconButton variant='outline' onClick={() => queryClient.invalidateQueries({ queryKey: ['entries'] })}>
+            <ReloadIcon />
+          </IconButton>
 
-        <Select.Root value={entryName} onValueChange={setEntry}>
-          <Box asChild flexGrow='1'>
-            <Select.Trigger disabled={entries.isPending || !!entries.error} placeholder='Select dataset' />
+          <Select.Root value={entryName} onValueChange={setEntry}>
+            <Box asChild flexGrow='1'>
+              <Select.Trigger disabled={entries.isPending || !!entries.error} placeholder='Select dataset' />
+            </Box>
+            <Select.Content>
+              {
+                (!entries.isPending && !entries.error) ? entries.data.map((name) => (
+                  <Select.Item value={name} key={name}>{name}</Select.Item>
+                )) : null
+              }
+            </Select.Content>
+          </Select.Root>
+
+          <Box asChild minWidth='13rem'>
+            <Select.Root value={lastMs.toString()} onValueChange={value => setLastMs(+value)}>
+              <Select.Trigger />
+
+              <Select.Content>
+                <Select.Item value='0'>All data</Select.Item>
+                <Select.Item value='60000'>Last minute</Select.Item>
+                <Select.Item value='300000'>Last 5 minute</Select.Item>
+                <Select.Item value='600000'>Last 10 minute</Select.Item>
+                <Select.Item value='900000'>Last 15 minute</Select.Item>
+                <Select.Item value='1800000'>Last 30 minute</Select.Item>
+                <Select.Item value='3600000'>Last hour</Select.Item>
+                <Select.Item value='7200000'>Last 2 hours</Select.Item>
+                <Select.Item value='10800000'>Last 3 hours</Select.Item>
+                <Select.Item value='14400000'>Last 4 hours</Select.Item>
+                <Select.Item value='21600000'>Last 6 hours</Select.Item>
+                <Select.Item value='32400000'>Last 9 hours</Select.Item>
+                <Select.Item value='43200000'>Last 12 hours</Select.Item>
+                <Select.Item value='86400000'>Last 24 hours</Select.Item>
+              </Select.Content>
+            </Select.Root>
           </Box>
-          <Select.Content>
-            {
-              (!entries.isPending && !entries.error) ? entries.data.map((name) => (
-                <Select.Item value={name} key={name}>{name}</Select.Item>
-              )) : null
-            }
-          </Select.Content>
-        </Select.Root>
 
-        <Box asChild minWidth='13rem'>
-          <Select.Root value={relative ? '1' : '0'} onValueChange={checked => setRelative(checked == '1')}>
-            <Select.Trigger />
-            <Select.Content>
-              <Select.Item value={'0'}>Relative to dataset</Select.Item>
-              <Select.Item value={'1'}>Relative to realtime</Select.Item>
-            </Select.Content>
-          </Select.Root>
-        </Box>
+          <DeleteDatasetDialog entryName={entryName} />
 
-        <Box asChild minWidth='13rem'>
-          <Select.Root value={lastMs.toString()} onValueChange={value => setLastMs(+value)}>
-            <Select.Trigger />
+          <ChangeRangeDialog entryName={entryName!} onUpdate={() => queryClient.invalidateQueries({ queryKey: ['range', entryName] })} />
+        </Flex>
 
-            <Select.Content>
-              <Select.Item value='0'>All data</Select.Item>
-              <Select.Item value='60000'>Last minute</Select.Item>
-              <Select.Item value='300000'>Last 5 minute</Select.Item>
-              <Select.Item value='600000'>Last 10 minute</Select.Item>
-              <Select.Item value='900000'>Last 15 minute</Select.Item>
-              <Select.Item value='1800000'>Last 30 minute</Select.Item>
-              <Select.Item value='3600000'>Last hour</Select.Item>
-              <Select.Item value='7200000'>Last 2 hours</Select.Item>
-              <Select.Item value='10800000'>Last 3 hours</Select.Item>
-              <Select.Item value='14400000'>Last 4 hours</Select.Item>
-              <Select.Item value='21600000'>Last 6 hours</Select.Item>
-              <Select.Item value='32400000'>Last 9 hours</Select.Item>
-              <Select.Item value='43200000'>Last 12 hours</Select.Item>
-              <Select.Item value='86400000'>Last 24 hours</Select.Item>
-            </Select.Content>
-          </Select.Root>
-        </Box>
+        <Flex direction='row' gap='2'>
+          <Box asChild minWidth='13rem'>
+            <Select.Root value={relative ? '1' : '0'} onValueChange={checked => setRelative(checked == '1')}>
+              <Select.Trigger />
+              <Select.Content>
+                <Select.Item value={'0'}>Relative to dataset</Select.Item>
+                <Select.Item value={'1'}>Relative to realtime</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </Box>
 
-        <Box asChild minWidth='13rem'>
-          <Select.Root value={updateRate.toString()} onValueChange={value => setUpdateRate(+value)}>
-            <Select.Trigger />
+          <Box asChild minWidth='13rem'>
+            <Select.Root value={updateRate.toString()} onValueChange={value => setUpdateRate(+value)}>
+              <Select.Trigger />
 
-            <Select.Content>
-              <Select.Item value='1000'>Every second</Select.Item>
-              <Select.Item value='500'>Every 500ms</Select.Item>
-              <Select.Item value='250'>Every 250ms</Select.Item>
-            </Select.Content>
-          </Select.Root>
-        </Box>
-
-        <AlertDialog.Root>
-          <AlertDialog.Trigger>
-            <IconButton color='red' disabled={!entryName} variant='outline'>
-              <TrashIcon />
-            </IconButton>
-          </AlertDialog.Trigger>
-
-          <AlertDialog.Content maxWidth='20rem'>
-            <AlertDialog.Title>Remove all values in dataset?</AlertDialog.Title>
-            <AlertDialog.Description>You are about to remove all values in the dataset <Code>{entryName}</Code>.</AlertDialog.Description>
-
-            <Flex gap='3' mt='5' justify='end'>
-              <AlertDialog.Cancel>
-                <Button color='gray' variant='soft'>Cancel</Button>
-              </AlertDialog.Cancel>
-              <AlertDialog.Action onClick={() =>
-                fetcher(`/api/entries/${entryName}`, { method: 'DELETE' })
-                  .catch(console.error)
-              }>
-                <Button color='red'>Remove</Button>
-              </AlertDialog.Action>
-            </Flex>
-          </AlertDialog.Content>
-        </AlertDialog.Root>
+              <Select.Content>
+                <Select.Item value='1000'>Every second</Select.Item>
+                <Select.Item value='500'>Every 500ms</Select.Item>
+                <Select.Item value='250'>Every 250ms</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </Box>
+        </Flex>
       </Flex>
 
       {entryName && <Chart relative={relative} name={entryName} last_ms={lastMs} updateRate={updateRate} />}
@@ -240,3 +223,110 @@ export const ChartListing = () => {
   )
 }
 export default ChartListing
+
+const DeleteDatasetDialog = ({ entryName }: { entryName?: string }) => {
+  return (
+    <AlertDialog.Root>
+      <AlertDialog.Trigger>
+        <IconButton color='red' disabled={!entryName} variant='outline'>
+          <TrashIcon />
+        </IconButton>
+      </AlertDialog.Trigger>
+
+      <AlertDialog.Content maxWidth='20rem'>
+        <AlertDialog.Title>Remove all values in dataset?</AlertDialog.Title>
+        <AlertDialog.Description>You are about to remove all values in the dataset <Code>{entryName}</Code>.</AlertDialog.Description>
+
+        <Flex gap='3' mt='5' justify='end'>
+          <AlertDialog.Cancel>
+            <Button color='gray' variant='soft'>Cancel</Button>
+          </AlertDialog.Cancel>
+          <AlertDialog.Action onClick={() =>
+            fetcher(`/api/entries/${entryName}`, { method: 'DELETE' })
+              .catch(console.error)
+          }>
+            <Button color='red'>Remove</Button>
+          </AlertDialog.Action>
+        </Flex>
+      </AlertDialog.Content>
+    </AlertDialog.Root>
+  )
+}
+
+const ChangeRangeDialog = ({ entryName, onUpdate }: { entryName: string, onUpdate: () => void }) => {
+  const range = useEntryRange(entryName)
+
+  const Placeholder = ({ children }: { children: ReactNode }) => {
+    if (range.isPending) return <Spinner />
+    if (range.error) return (
+      <Callout.Root color='red'>
+        <Callout.Icon>!</Callout.Icon>
+        <Callout.Text>{range.error?.toString()}</Callout.Text>
+      </Callout.Root>
+    )
+
+    return children
+  }
+
+  const [open, setOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
+
+  const [min, setMin] = useState<number | null>()
+  const [max, setMax] = useState<number | null>()
+  useEffect(() => {
+    if (range) {
+      setMin(range.data?.min)
+      setMax(range.data?.max)
+    }
+  }, [range])
+  useEffect(() => {
+    setBusy(false)
+  }, [open])
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger>
+        <IconButton color='orange' disabled={!entryName} variant='outline'>
+          <RowSpacingIcon />
+        </IconButton>
+      </Dialog.Trigger>
+
+      <Dialog.Content maxWidth='20rem' onInteractOutside={e => e.preventDefault()}>
+        <Dialog.Title>Change the min-max range</Dialog.Title>
+
+        <form onSubmit={(e) => {
+          const fields = new FormData(e.target as HTMLFormElement, null)
+          const newMin = fields.get('min')
+          const newMax = fields.get('max')
+
+          fetcher(`/api/ranges/${entryName}`, {
+            method: 'PUT', body: JSON.stringify({
+              min: newMin == '' ? undefined : +newMin!,
+              max: newMax == '' ? undefined : +newMax!
+            })
+          }).then(() => {
+            onUpdate()
+            setOpen(false)
+          }).catch(console.error)
+          e.preventDefault()
+        }}>
+          <Placeholder>
+            <Grid columns={'max-content 1fr 1fr'} gap='2' justify='center' align='center'>
+              <Text>Range</Text>
+              <TextField.Root disabled={busy} type='number' name='min' placeholder='min' size='1' defaultValue={min ?? ''} />
+              <TextField.Root disabled={busy} type='number' name='max' placeholder='max' size='1' defaultValue={max ?? ''} />
+            </Grid>
+          </Placeholder>
+
+          <Flex gap='3' mt='5' justify='end'>
+            <Dialog.Close>
+              <Button disabled={busy} type='button' color='gray' variant='soft'>Cancel</Button>
+            </Dialog.Close>
+
+            <Button disabled={busy} type='submit' color='orange'>Update</Button>
+          </Flex>
+        </form>
+      </Dialog.Content>
+    </Dialog.Root>
+  )
+}
