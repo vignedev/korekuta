@@ -184,6 +184,8 @@ export const ChartListing = () => {
                 <Select.Item value='32400000'>Last 9 hours</Select.Item>
                 <Select.Item value='43200000'>Last 12 hours</Select.Item>
                 <Select.Item value='86400000'>Last 24 hours</Select.Item>
+                <Select.Item value='172800000'>Last 2 days</Select.Item>
+                <Select.Item value='259200000'>Last 3 days</Select.Item>
               </Select.Content>
             </Select.Root>
           </Box>
@@ -209,6 +211,7 @@ export const ChartListing = () => {
               <Select.Trigger />
 
               <Select.Content>
+                <Select.Item value='5000'>Every 5 seconds</Select.Item>
                 <Select.Item value='1000'>Every second</Select.Item>
                 <Select.Item value='500'>Every 500ms</Select.Item>
                 <Select.Item value='250'>Every 250ms</Select.Item>
